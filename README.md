@@ -13,6 +13,6 @@ Este projeto explora o uso de sinais Wi-Fi para detectar a presença e o movimen
 * Scripts de Processamento de Sinais (MATLAB).
 
 ## Equipe e Responsabilidades 
-* **Pedro Henrique:** Infraestrutura e Firmware base.
-* **Mauricio:** Coleta de dados e Processamento de Sinais.
+* **Mauricio Darabas:** Infraestrutura e Firmware base.
+* **Pedro Henrique:** Coleta de dados e Processamento de Sinais.
 * **Alexis Solis:** Lógica de Alarme, Filtros C++ e Validação em Campo.

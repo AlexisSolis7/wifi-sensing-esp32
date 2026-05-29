@@ -1,8 +1,10 @@
 #include <WiFi.h>
+#include <WebSocketsServer.h>  // isto vai servir para enviar para o flutter
 
 // --- Configuração do LED ---
 #define LED_VERDE 2  // Conecte o LED verde no pino 18 (e um resistor ao GND)
-// Dica: Se quiser testar com o azul interno agora mesmo, mude para 2
+
+WebSocketsServer webSocket = WebSocketsServer(81); // porta do servidor
 
 // --- Configurações de Conexão ---
 const char* ssid     = "WiFi_Sensing_AP";
@@ -41,6 +43,11 @@ void setup() {
   // SUCESSO: LED Verde aceso fixo
   digitalWrite(LED_VERDE, HIGH);
   Serial.println("\n[SUCESSO] Conectado ao Transmissor!");
+  
+  webSocket.begin(); // iniciando o sv
+  Serial.print("IP do Receptor para colocar no Flutter: ");
+  Serial.println(WiFi.localIP());
+
   Serial.println("Aguardando estabilização...");
   delay(2000);
 
@@ -60,6 +67,8 @@ void setup() {
 }
 
 void loop() {
+  webSocket.loop();   // conexao alimentada constantemente para nao cair
+
   // Monitoramento da Conexão: Se cair, o LED apaga
   if (WiFi.status() == WL_CONNECTED) {
     digitalWrite(LED_VERDE, HIGH);
@@ -67,7 +76,7 @@ void loop() {
     digitalWrite(LED_VERDE, LOW);
   }
   
-  vTaskDelay(pdMS_TO_TICKS(500)); // Checa a cada meio segundo
+  vTaskDelay(pdMS_TO_TICKS(10)); 
 }
 
 // --- Implementação da Coleta e Log ---
@@ -81,11 +90,17 @@ void vDataLogTask(void *pvParameters) {
       Serial.print(ts);
       Serial.print(",");
       Serial.println(rssi);
+
+      if (rssi < -65) { 
+         webSocket.broadcastTXT("MOVIMENTO_DETECTADO");
+         vTaskDelay(pdMS_TO_TICKS(1000)); // Espera 1 segundo para não floodar o celular
+      }
+
     } else {
       // Se cair o sinal, tenta reconectar silenciosamente
       WiFi.begin(ssid, password);
     }
-
+    
     // Intervalo de amostragem: 100ms
     vTaskDelay(pdMS_TO_TICKS(100));
   }

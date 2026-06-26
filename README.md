@@ -230,7 +230,7 @@ O projeto superou o modelo convencional Ponto-a-Ponto, evoluindo para uma arquit
 ## Layout de Sensoriamento (Grade de 25 Zonas)
 O sistema divide a sala em 25 quadrados (Zonas A a Y). O posicionamento estratégico dos sensores permite que cada zona seja atravessada por múltiplos links de rádio.
 
-![Layout das 25 Zonas](layout_zonas.jpg)
+![Layout das 25 Zonas](layout_zonas.png)
 *Figura 1: Grade de monitoramento com os 5 nós ESP32 (A, E, U, Y nas arestas e M ao centro).*
 
 ## Infraestrutura e Protocolos

@@ -121,6 +121,88 @@ ws://192.168.4.2:81
 
 Caso o ESP32 receptor receba outro IP, atualize esse endereço em `app_monitoramento/lib/modules/home/home_controller.dart`.
 
+## Próxima Etapa: Mapa de Movimento com 3 ou 4 ESP32
+
+A próxima evolução do projeto é usar 3 ou 4 módulos ESP32 distribuídos pelo ambiente para estimar por onde uma pessoa está se movendo. A ideia é representar o ambiente como um quadrado ou retângulo no aplicativo Flutter e exibir um ponto se deslocando conforme os sinais Wi-Fi forem alterados.
+
+Exemplo de posicionamento com 4 ESP32:
+
+```text
+ESP A ---------------- ESP B
+  |                      |
+  |       ambiente       |
+  |                      |
+ESP D ---------------- ESP C
+```
+
+Neste modelo, os ESP32 ficam em posições conhecidas. Quando uma pessoa passa pelo ambiente, o corpo interfere no sinal Wi-Fi entre os dispositivos. Essa interferência altera os valores de RSSI medidos. Comparando essas alterações, o sistema pode estimar a região mais provável onde houve movimento.
+
+### Estratégia com RSSI
+
+Como primeira versão, a localização será feita usando RSSI, pois essa informação já é simples de obter com a biblioteca WiFi do ESP32.
+
+O processo esperado é:
+
+1. Posicionar 3 ou 4 ESP32 em pontos fixos do ambiente.
+2. Medir o RSSI entre os dispositivos com o ambiente vazio.
+3. Usar esses valores como referência de calibração.
+4. Medir continuamente o RSSI durante o funcionamento.
+5. Comparar o RSSI atual com o RSSI de referência.
+6. Identificar quais caminhos de sinal foram mais afetados.
+7. Estimar uma posição aproximada da pessoa.
+8. Enviar a posição estimada para o app Flutter.
+9. Mostrar no app um ponto se movendo dentro do mapa.
+
+Com 4 ESP32, é possível analisar vários caminhos de sinal, por exemplo:
+
+```text
+A-B
+A-C
+A-D
+B-C
+B-D
+C-D
+```
+
+Quanto mais caminhos forem observados, melhor tende a ser a estimativa. Porém, como o RSSI sofre bastante variação por paredes, móveis, distância, reflexões e ruído do ambiente, a posição exibida no app deve ser tratada como uma estimativa aproximada, não como uma localização exata.
+
+### Representação no Aplicativo
+
+No app Flutter, o ambiente pode ser desenhado como um mapa simples:
+
+```text
++----------------------+
+| ESP A          ESP B |
+|                      |
+|          o           |
+|                      |
+| ESP D          ESP C |
++----------------------+
+```
+
+O ponto `o` representa a posição estimada da pessoa. Conforme o backend ou ESP coordenador calcular novas posições, o app atualiza esse ponto em tempo real.
+
+Para melhorar a visualização, o app também pode exibir:
+
+- os ESP32 fixos nos cantos do mapa;
+- o ponto estimado da pessoa;
+- um rastro do caminho percorrido;
+- a intensidade do movimento detectado;
+- o nível de confiança da estimativa;
+- gráficos dos valores de RSSI para testes e calibração.
+
+### Limitações Esperadas
+
+Usar RSSI permite criar uma primeira versão funcional, mas existem limitações:
+
+- o sinal pode variar mesmo sem movimento;
+- a posição estimada pode oscilar;
+- ambientes com muitos obstáculos podem gerar falsos positivos;
+- a precisão depende de uma boa calibração inicial;
+- o resultado tende a ser melhor para detectar regiões do que coordenadas exatas.
+
+Por isso, a primeira meta deve ser identificar zonas aproximadas de movimento. Depois, com filtros e calibração, o sistema pode evoluir para um ponto mais estável no mapa.
+
 ## Estado Atual
 
 - O transmissor já cria a rede Wi-Fi.

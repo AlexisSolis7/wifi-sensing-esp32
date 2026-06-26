@@ -255,8 +255,9 @@ O sistema envia para o Flutter uma string de telemetria completa no formato:
 Isso permite que o aplicativo gere **Mapas de Calor (Heatmaps)** e identifique a posição exata do usuário no grid.
 
 ## Organização do Repositório
-- `/nos_perifericos`: Firmware único para os nós A, E, U e Y (configuráveis via NODE_ID).
-- `/no_central`: Firmware do Hub Central (Gateway WebSocket + Matriz de Sinais).
+- `/no_central_M`: Firmware do Hub Central (Gateway WebSocket + Matriz de Sinais).
+- `/nos_perifericos_A_E_U_Y`: Firmware único para os nós A, E, U e Y (configuráveis via NODE_ID).
+
 
 ---
 

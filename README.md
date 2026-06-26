@@ -219,6 +219,48 @@ Por isso, a primeira meta deve ser identificar zonas aproximadas de movimento. D
 - Implementar filtros para reduzir falsos positivos.
 - Evoluir a coleta para CSI, caso o objetivo seja uma análise mais precisa da camada física.
 
+
+# (Projeto Final) Wi-Fi Sensing: Detecção de Movimento e Localização em Grade 5x5
+
+Este projeto utiliza a tecnologia de **Wi-Fi Sensing** para monitorar ambientes internos de forma não invasiva. Através da análise de rádio (RSSI), o sistema identifica a presença e a localização exata de pessoas em uma grade de **25 zonas de detecção**, utilizando apenas 5 módulos ESP32.
+
+## Evolução Técnica
+O projeto superou o modelo convencional Ponto-a-Ponto, evoluindo para uma arquitetura de **Rede em Malha (Full Mesh)**. Esta abordagem transforma cada sensor em um transmissor e receptor simultâneo, criando uma teia densa de feixes de rádio que eliminam pontos cegos e permitem a triangulação do movimento.
+
+## Layout de Sensoriamento (Grade de 25 Zonas)
+O sistema divide a sala em 25 quadrados (Zonas A a Y). O posicionamento estratégico dos sensores permite que cada zona seja atravessada por múltiplos links de rádio.
+
+![Layout das 25 Zonas](layout_zonas.jpg)
+*Figura 1: Grade de monitoramento com os 5 nós ESP32 (A, E, U, Y nas arestas e M ao centro).*
+
+## Infraestrutura e Protocolos
+- **Topologia:** Full Mesh (Malha Completa).
+- **Protocolo de Malha:** ESP-NOW (Baixa latência, sem necessidade de roteador).
+- **Protocolo de Aplicação:** WebSockets (Porta 81) para integração com dispositivos móveis.
+- **Taxa de Amostragem:** 10Hz (10 pings de sensoriamento por segundo).
+
+### Funcionamento dos Nós:
+- **Nós Periféricos (A, E, U, Y):** Atuam como sensores de borda. Eles medem o sinal de todos os vizinhos e enviam um "relatório de vizinhança" para o centro.
+- **Nó M (Centro/Gateway):** Atua como o cérebro do sistema. Ele consolida os relatórios, monta uma **Matriz de Sinais 5x5** e transmite a telemetria bruta e alertas de zona para o aplicativo Flutter.
+
+## Funcionalidades de Firmware
+- **Auto-Calibração Inteligente:** Ao iniciar, o sistema realiza uma leitura de 5 segundos do ambiente vazio para definir a *baseline* (referência) de rádio de forma automática.
+- **Relatório de Vizinhança:** Implementação de estruturas de dados que permitem ao Nó M "enxergar" o que acontece entre os sensores periféricos, mesmo sem visão direta.
+- **Programação Não-Bloqueante:** Lógica baseada em `millis()` que permite ao ESP32 gerenciar o rádio de sensoriamento e o servidor de internet simultaneamente, sem perdas de conexão.
+- **Matriz de Diagnóstico:** Sistema de log via Serial Monitor que exibe a saúde de todos os 20 links de rádio em tempo real.
+
+## Estrutura de Dados (Telemetria)
+O sistema envia para o Flutter uma string de telemetria completa no formato:
+`MATRIX:v1,v2,v3...v25`
+Isso permite que o aplicativo gere **Mapas de Calor (Heatmaps)** e identifique a posição exata do usuário no grid.
+
+## Organização do Repositório
+- `/nos_perifericos`: Firmware único para os nós A, E, U e Y (configuráveis via NODE_ID).
+- `/no_central`: Firmware do Hub Central (Gateway WebSocket + Matriz de Sinais).
+
+---
+
+
 ## Equipe e Responsabilidades
 
 - **Mauricio Darabas:** infraestrutura e firmware base dos ESP32.

@@ -1,16 +1,65 @@
-# app_monitoramento
+# App Monitoramento Wi-Fi Sensing
 
-A new Flutter project.
+Aplicativo Flutter para visualizar a malha ESP32 do projeto Wi-Fi Sensing.
 
-## Getting Started
+## Protocolo esperado
 
-This project is a starting point for a Flutter application.
+O app conecta por WebSocket ao gateway ESP32 na porta `81`.
 
-A few resources to get you started if this is your first Flutter project:
+Endpoint padrao da versao nova:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```text
+ws://192.168.4.1:81
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Mensagens aceitas:
+
+```text
+MATRIX:v1,v2,v3...v25
+ALERTA:ZONA_C
+MOVIMENTO_DETECTADO
+```
+
+- `MATRIX:` representa a matriz 5x5 de RSSI entre os nos `A`, `E`, `U`, `Y` e `M`.
+- `ALERTA:ZONA_X` destaca a zona detectada na grade 5x5.
+- `MOVIMENTO_DETECTADO` mantem compatibilidade com o firmware antigo.
+
+## Como rodar
+
+```bash
+flutter pub get
+flutter run
+```
+
+Para testar no navegador:
+
+```bash
+flutter run -d chrome
+```
+
+## Observacoes
+
+No Android, o app usa WebSocket sem TLS (`ws://`) para conversar com o ESP32 em rede local. Por isso o manifest principal habilita `INTERNET` e `usesCleartextTraffic`.
+
+## Calibracao no app
+
+O app pode calibrar sem alterar o firmware dos ESP32:
+
+1. Posicione os 5 ESPs e deixe o ambiente vazio.
+2. Conecte no WebSocket do no `M`.
+3. Clique em `Calibrar`.
+4. O app captura 75 matrizes `MATRIX:` por cerca de 15 segundos e calcula a media e o ruido normal de cada link.
+5. Durante o uso, o app mostra a variacao de cada link em relacao a essa baseline.
+
+Para uma primeira versao de localizacao, a grade 5x5 e dividida em 4 quadrantes. O app estima o quadrante dominante usando os links mais alterados, descartando links instaveis aprendidos na calibracao e exigindo margem de confianca antes de pintar uma regiao em vermelho.
+
+## Organizacao do codigo
+
+O app foi organizado em camadas simples:
+
+- `domain/`: entidades, constantes e mensagens de telemetria.
+- `services/`: parser WebSocket, normalizacao de endpoint e analise RSSI.
+- `home_controller.dart`: orquestra estado, WebSocket, calibracao e decisao de regiao.
+- `home_page.dart`: interface visual e componentes do dashboard.
+
+Essa separacao mantem as regras principais testaveis sem depender da tela.
